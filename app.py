@@ -1,13 +1,14 @@
 import tensorflow as tf
 import string 
 import numpy as np
+import os
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from flask import Flask, render_template, request, url_for
 
 # Load the dataset
-data = open('./search-keywords-cat.txt').read()
+data = open('./search-keywords-cat (old).txt').read()
 
 def clean_text(doc):
   tokens = doc.split()
@@ -42,7 +43,6 @@ def generate_text_seq(seed_text, model, tokenizer, text_seq_length, n_words):
     encoded = tokenizer.texts_to_sequences([seed_text])[0]
     encoded = pad_sequences([encoded], maxlen = text_seq_length, truncating='pre')
 
-    # y_predict = model.predict_classes(encoded)
     y_predict = np.argmax(model.predict(encoded), axis=1)
 
     predicted_word = ''
@@ -53,14 +53,6 @@ def generate_text_seq(seed_text, model, tokenizer, text_seq_length, n_words):
     seed_text = seed_text + ' ' + predicted_word
     text.append(predicted_word)
   return ' '.join(text)
-
-# if __name__ == '__main__':
-#     seed_text = input("Search: ")
-
-#     print("Recommendation: ")
-#     print(generate_text_seq(seed_text, model, tokenizer, 5, 5))
-
-# import os
 
 # Initialize flask app
 app = Flask(__name__)
@@ -73,16 +65,15 @@ def generate():
     else:
         search = " "
         recommendation = " "
-
+    # return f"Seed: {search}\nResult: {recommendation}"
     return render_template('index.html',
                            seed = search,
                            generation = recommendation)
 
 if __name__ == '__main__':
-    # port = int(os.environ.get('PORT', 5000))
-    seed_text = input("Search: ")
+    # seed_text = input("Search: ")
 
-    print("Recommendation: ")
-    print(generate_text_seq(seed_text, model, tokenizer, 5, 5))
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # print("Recommendation: ")
+    # print(generate_text_seq(seed_text, model, tokenizer, 5, 5))
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
