@@ -5,7 +5,7 @@ import os
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, jsonify
 
 # Load the dataset
 data = open('./search-keywords-cat (old).txt').read()
@@ -15,6 +15,7 @@ def clean_text(doc):
   table = str.maketrans('', '', string.punctuation)
   tokens = [w.translate(table) for w in tokens]
   tokens = [word for word in tokens if word.isalpha()]
+  
   tokens = [word.lower() for word in tokens]
   return tokens
 
@@ -59,16 +60,30 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def generate():
-    if request.method == 'POST':
-        search = request.form['message']
-        recommendation = generate_text_seq(search, model, tokenizer, 5, 5)
-    else:
-        search = " "
-        recommendation = " "
-    # return f"Seed: {search}\nResult: {recommendation}"
-    return render_template('index.html',
-                           seed = search,
-                           generation = recommendation)
+    # if request.method == 'POST':
+    #     search = request.form['message']
+    #     recommendation = generate_text_seq(search, model, tokenizer, 5, 5)
+    # else:
+    #     search = " "
+    #     recommendation = " "
+    # # return f"Seed: {search}\nResult: {recommendation}"
+    # return render_template('index.html',
+    #                        seed = search,
+    #                        generation = recommendation)
+    if request.method == "POST":
+        content_type = request.headers.get('Content-Type')
+        if (content_type == 'application/json'):
+            search = request.json
+    
+            try:
+                recommendation = generate_text_seq(search.get("search"), model, tokenizer, 5, 5)
+                data = {"Result": search.get("search") + " " + recommendation}
+                return data
+            except Exception as e:
+                return jsonify({"error": str(e)})
+        else:
+          return 'Content-Type not supported!'
+    return "OK"
 
 if __name__ == '__main__':
     # seed_text = input("Search: ")

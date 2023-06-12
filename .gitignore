@@ -1,2 +1,8 @@
-/__pycache__
+__pycache__
 .env
+static
+templates
+.dockerignore
+search-keywords-cat (old).txt
+text_generation_model(new).h5
+token_new.pkl
